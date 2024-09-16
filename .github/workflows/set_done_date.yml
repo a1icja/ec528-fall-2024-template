@@ -14,29 +14,35 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { data: issues } = await github.issues.listForRepo({
+            // Log the event payload
+            console.log(JSON.stringify(context.payload, null, 2));
+
+            // Get issue number from the event payload
+            const issueNumber = context.payload.issue.number;
+
+            // Get the issue
+            const { data: issue } = await github.issues.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              state: 'closed',
-              per_page: 100
+              issue_number: issueNumber
             });
-            const issue = issues.find(i => i.number === context.issue.number);
-            if (!issue) {
-              console.log('Issue not found');
-              return;
-            }
+
+            // Get the associated project card, if any
             const { data: projectCards } = await github.projects.listCards({
-              project_id: 1,
-              archived_state: 'not_archived',
-              per_page: 100
+              column_id: issue.project_card.column_id
             });
-            const card = projectCards.find(c => c.content_url === issue.url);
-            if (!card) {
-              console.log('Card not found');
-              return;
+
+            // Find the project card that is associated with the issue
+            const projectCard = projectCards.find(card => card.content_url === issue.url);
+
+            // If there is a project card, update the card with the current date
+            if (projectCard) {
+              await github.projects.updateCard({
+                card_id: projectCard.id,
+                archived: false,
+                note: projectCard.note + `\nDone: ${new Date().toISOString()}`
+              });
             }
-            await github.projects.updateCard({
-              card_id: card.id,
-              archived: false,
-              due_date: new Date().toISOString().split('T')[0]
-            });
+
+            // Return the issue number
+            return issueNumber;
