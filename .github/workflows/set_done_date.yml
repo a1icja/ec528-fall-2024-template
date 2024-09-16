@@ -2,7 +2,7 @@ name: Set "End date" property when project card moved to Done
 
 on:
   workflow_dispatch:
-  project_card:
+  project_column:
     types: [moved]
   
 jobs:
@@ -14,9 +14,12 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            console.log(context.payload);
+
             const { data: project } = await github.projects.getCard({
               card_id: context.payload.project_card.card_id
             });
+            
             if (project.column_url.includes('done')) {
               await github.projects.updateCard({
                 card_id: context.payload.project_card.card_id,
