@@ -1,10 +1,10 @@
-name: Set "End date" property when project card moved to Done
+# When an issue is closed, set the end date to the current date on the related project card.
+name: Set Done Date
 
 on:
-  project_card:
-    types: 
-      - moved
-  
+  issues:
+    types: [closed]
+
 jobs:
   set_done_date:
     runs-on: ubuntu-latest
@@ -14,4 +14,29 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            console.log(context.payload);
+            const { data: issues } = await github.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              per_page: 100
+            });
+            const issue = issues.find(i => i.number === context.issue.number);
+            if (!issue) {
+              console.log('Issue not found');
+              return;
+            }
+            const { data: projectCards } = await github.projects.listCards({
+              project_id: 1,
+              archived_state: 'not_archived',
+              per_page: 100
+            });
+            const card = projectCards.find(c => c.content_url === issue.url);
+            if (!card) {
+              console.log('Card not found');
+              return;
+            }
+            await github.projects.updateCard({
+              card_id: card.id,
+              archived: false,
+              due_date: new Date().toISOString().split('T')[0]
+            });
