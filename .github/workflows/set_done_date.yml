@@ -28,4 +28,12 @@ jobs:
             });
 
             // Log the issue
-            console.log(JSON.stringify(issue, null, 2));
+            // console.log(JSON.stringify(issue, null, 2));
+
+            // Get all project cards for the repository
+            const { data: projectCards } = await github.projects.listCards({
+              project_id: issue.project_id
+            });
+
+            // Log the project cards
+            console.log(JSON.stringify(projectCards, null, 2));
