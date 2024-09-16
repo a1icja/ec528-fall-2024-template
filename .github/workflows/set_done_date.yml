@@ -1,4 +1,4 @@
-# When an issue is closed, set the end date to the current date on the related project card.
+# When an issue is closed, set the done date to the current date
 name: Set Done Date
 
 on:
@@ -27,13 +27,15 @@ jobs:
               issue_number: issueNumber
             });
 
-            // Log the issue
-            // console.log(JSON.stringify(issue, null, 2));
+            // Get the current date
+            const currentDate = new Date().toISOString().split('T')[0];
 
-            // Get all project cards for the repository
-            const { data: projectCards } = await github.projects.listCards({
-              project_id: issue.project_id
+            // Update the issue with the current date
+            await github.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body: issue.body + `\n\nDone: ${currentDate}`
             });
 
-            // Log the project cards
-            console.log(JSON.stringify(projectCards, null, 2));
+            console.log(`Done date set to ${currentDate}`);
