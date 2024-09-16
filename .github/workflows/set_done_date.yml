@@ -35,7 +35,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issueNumber,
-              body: issue.body + `\n\nDone: ${currentDate}`
+              body: ${issue.body ? `${issue.body}\n\n` : ''}Done: ${currentDate}`
             });
 
             console.log(`Done date set to ${currentDate}`);
