@@ -15,7 +15,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             // Log the event payload
-            console.log(JSON.stringify(context.payload, null, 2));
+            // console.log(JSON.stringify(context.payload, null, 2));
 
             // Get issue number from the event payload
             const issueNumber = context.payload.issue.number;
@@ -27,22 +27,5 @@ jobs:
               issue_number: issueNumber
             });
 
-            // Get the associated project card, if any
-            const { data: projectCards } = await github.projects.listCards({
-              column_id: issue.project_card.column_id
-            });
-
-            // Find the project card that is associated with the issue
-            const projectCard = projectCards.find(card => card.content_url === issue.url);
-
-            // If there is a project card, update the card with the current date
-            if (projectCard) {
-              await github.projects.updateCard({
-                card_id: projectCard.id,
-                archived: false,
-                note: projectCard.note + `\nDone: ${new Date().toISOString()}`
-              });
-            }
-
-            // Return the issue number
-            return issueNumber;
+            // Log the issue
+            console.log(JSON.stringify(issue, null, 2));
